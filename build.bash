@@ -67,7 +67,7 @@ echo "Cloning required git repositories"
 git clone --depth 1 -b master https://code.videolan.org/videolan/x264.git $CMPLD/x264 &
 git clone --depth 1 -b origin https://github.com/rbrito/lame.git $CMPLD/lame &
 git clone --depth 1 -b master https://github.com/webmproject/libvpx $CMPLD/libvpx &
-git clone --depth 1 -b master https://github.com/FFmpeg/FFmpeg $CMPLD/ffmpeg &
+git clone --depth 1 -b release/4.1 https://github.com/FFmpeg/FFmpeg $CMPLD/ffmpeg &
 git clone --depth 1 -b v2.0.1 https://aomedia.googlesource.com/aom.git $CMPLD/aom &
 wait
 
@@ -112,9 +112,9 @@ echo "Downloading: libvorbis (1.3.7)"
 echo "Downloading: libopus (1.3.1)"
 {(curl -Ls -o - https://archive.mozilla.org/pub/opus/opus-1.3.1.tar.gz | tar zxf - -C $CMPLD/) &};
 echo "Downloading: harfbuzz (2.7.2)"
-{(curl -Ls -o - https://github.com/harfbuzz/harfbuzz/releases/download/2.7.2/harfbuzz-2.7.2.tar.xz | tar Jxf - -C $CMPLD/) &};
+{(curl -Ls -o - https://github.com/harfbuzz/harfbuzz/releases/download/2.8.1/harfbuzz-2.8.1.tar.xz | tar Jxf - -C $CMPLD/) &};
 echo "Downloading: libogg (1.3.4)"
-curl -Ls -o - https://downloads.xiph.org/releases/ogg/libogg-1.3.4.tar.gz | tar zxf - -C $CMPLD/
+curl -Ls -o - https://ftp.osuosl.org/pub/xiph/releases/ogg/libogg-1.3.4.tar.gz | tar zxf - -C $CMPLD/
 curl -s -o "$CMPLD/libogg-1.3.4/fix_unsigned_typedefs.patch" "https://github.com/xiph/ogg/commit/c8fca6b4a02d695b1ceea39b330d4406001c03ed.patch?full_index=1"
 
 wait
@@ -341,7 +341,7 @@ function build_harfbuzz () {
   if [[ ! -e "${SRC}/lib/pkgconfig/harfbuzz.pc" ]]; then
     echo '♻️ ' Start compiling harfbuzz
     cd ${CMPLD}
-    cd harfbuzz-2.7.2
+    cd harfbuzz-2.8.1
     ./configure --prefix=${SRC} --disable-shared --enable-static
     make -j ${NUM_PARALLEL_BUILDS}
     make install
@@ -435,6 +435,7 @@ function build_ffmpeg () {
   export CFLAGS="-I${SRC}/include ${CFLAGS:-}"
   export LDFLAGS="$LDFLAGS -lexpat -lenca -lfribidi -liconv -lstdc++ -lfreetype -framework CoreText -framework VideoToolbox"
   ./configure --prefix=${SRC} --extra-cflags="-fno-stack-check" --arch=${ARCH} --cc=/usr/bin/clang \
+	      --enable-shared --disable-programs --enable-opencl --enable-opengl --disable-debug --enable-version3 \
               --enable-fontconfig --enable-gpl --enable-libopus --enable-libtheora --enable-libvorbis \
               --enable-libmp3lame --enable-libass --enable-libfreetype --enable-libx264 --enable-libx265 --enable-libvpx \
               --enable-libaom --enable-libvidstab --enable-libsnappy --enable-version3 --pkg-config-flags=--static \
